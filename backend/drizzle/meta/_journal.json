@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772038410467,
+      "tag": "0000_gray_mindworm",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772038661004,
+      "tag": "0001_slippery_shooting_star",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772040000000,
+      "tag": "0002_seed_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772040100000,
+      "tag": "0003_seed_role_hierarchy",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772128765642,
+      "tag": "0004_closed_spitfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772129770009,
+      "tag": "0005_tense_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773338581073,
+      "tag": "0006_public_justin_hammer",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773338700000,
+      "tag": "0007_rename_assignment_types_to_inquiry_types",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773338800000,
+      "tag": "0008_split_phone_country_code_and_number",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1773338900000,
+      "tag": "0009_inquiry_second_contact_phone",
+      "breakpoints": true
+    }
+  ]
+}
