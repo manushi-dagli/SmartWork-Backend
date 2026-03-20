@@ -9,6 +9,7 @@ import {
   updateAllocatedTaskSchema,
 } from "../validations/schemas.js";
 
+import { logger } from "../lib/logger.js";
 function allocatedTaskId(req: EmployeeAuthRequest): string {
   const id = req.params.id ?? req.params[0];
   return typeof id === "string" ? id : "";
@@ -22,7 +23,7 @@ export async function listByAssignment(
     typeof req.params.assignmentId === "string"
       ? req.params.assignmentId
       : req.params[0] ?? "";
-  console.log("[API] GET /api/assignments/:assignmentId/tasks", assignmentId);
+  logger.info(`Controller: GET /api/assignments/:assignmentId/tasks ${assignmentId}`);
   const list = await allocatedTaskRepo.listAllocatedTasksByAssignment(
     assignmentId
   );
@@ -34,7 +35,7 @@ export async function getAllocatedTask(
   res: Response
 ): Promise<void> {
   const id = allocatedTaskId(req);
-  console.log("[API] GET /api/allocated-tasks/:id", id);
+  logger.info(`Controller: GET /api/allocated-tasks/:id ${id}`);
   const task = await allocatedTaskRepo.getAllocatedTaskById(id);
   if (!task) {
     sendError(res, new NotFoundError("Allocated task not found"));
@@ -47,7 +48,7 @@ export async function createAllocatedTask(
   req: EmployeeAuthRequest,
   res: Response
 ): Promise<void> {
-  console.log("[API] POST /api/allocated-tasks");
+  logger.info("Controller: POST /api/allocated-tasks");
   try {
     const body = validateBody(req.body, createAllocatedTaskSchema);
     const task = await allocatedTaskRepo.createAllocatedTask(body);
@@ -62,7 +63,7 @@ export async function updateAllocatedTask(
   res: Response
 ): Promise<void> {
   const id = allocatedTaskId(req);
-  console.log("[API] PATCH /api/allocated-tasks/:id", id);
+  logger.info(`Controller: PATCH /api/allocated-tasks/:id ${id}`);
   try {
     const body = validateBody(req.body, updateAllocatedTaskSchema);
     const task = await allocatedTaskRepo.updateAllocatedTask(id, body);
@@ -77,7 +78,7 @@ export async function deleteAllocatedTask(
   res: Response
 ): Promise<void> {
   const id = allocatedTaskId(req);
-  console.log("[API] DELETE /api/allocated-tasks/:id", id);
+  logger.info(`Controller: DELETE /api/allocated-tasks/:id ${id}`);
   try {
     await allocatedTaskRepo.deleteAllocatedTask(id);
     sendSuccess(res, { deleted: true });

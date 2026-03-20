@@ -8,6 +8,7 @@ import type {
   UpdateAllocatedTaskDto,
 } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: AllocatedTaskRow): AllocatedTask {
   return {
@@ -33,6 +34,7 @@ function mapRow(row: AllocatedTaskRow): AllocatedTask {
 export async function listAllocatedTasksByAssignment(
   assignmentId: string
 ): Promise<AllocatedTask[]> {
+  logger.info(`Repository: Listing allocated tasks by assignment id`);
   const rows = await db
     .select()
     .from(allocatedTasks)
@@ -44,6 +46,7 @@ export async function listAllocatedTasksByAssignment(
 export async function getAllocatedTaskById(
   id: string
 ): Promise<AllocatedTask | null> {
+  logger.info(`Repository: Fetching allocated task by id`);
   const rows = await db
     .select()
     .from(allocatedTasks)
@@ -57,6 +60,7 @@ export async function getAllocatedTaskById(
 export async function createAllocatedTask(
   dto: CreateAllocatedTaskDto
 ): Promise<AllocatedTask> {
+  logger.info(`Repository: Creating allocated task`);
   const [row] = await db
     .insert(allocatedTasks)
     .values({
@@ -79,6 +83,7 @@ export async function updateAllocatedTask(
   id: string,
   dto: UpdateAllocatedTaskDto
 ): Promise<AllocatedTask> {
+  logger.info(`Repository: Updating allocated task`);
   const existing = await getAllocatedTaskById(id);
   if (!existing) throw new NotFoundError("Allocated task not found");
 
@@ -115,6 +120,7 @@ export async function updateAllocatedTask(
 }
 
 export async function deleteAllocatedTask(id: string): Promise<void> {
+  logger.info(`Repository: Deleting allocated task`);
   const deleted = await db
     .delete(allocatedTasks)
     .where(eq(allocatedTasks.id, id))

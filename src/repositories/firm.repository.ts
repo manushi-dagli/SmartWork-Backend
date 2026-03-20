@@ -3,6 +3,7 @@ import type { Firm, CreateFirmDto, UpdateFirmDto } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
 import { firms } from "../db/schema.js";
 import { db } from "../config/database.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: typeof firms.$inferSelect): Firm {
   return {
@@ -24,6 +25,7 @@ function mapRow(row: typeof firms.$inferSelect): Firm {
 }
 
 export const findFirmById = async (id: string): Promise<Firm | null> => {
+  logger.info(`Repository: Fetching firm by id`);
   const rows = await db.select().from(firms).where(eq(firms.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -31,11 +33,13 @@ export const findFirmById = async (id: string): Promise<Firm | null> => {
 };
 
 export const findManyFirms = async (): Promise<Firm[]> => {
+  logger.info(`Repository: Listing firms`);
   const rows = await db.select().from(firms).orderBy(asc(firms.name));
   return rows.map((r) => mapRow(r));
 };
 
 export const createFirm = async (dto: CreateFirmDto): Promise<Firm> => {
+  logger.info(`Repository: Creating firm`);
   const [row] = await db
     .insert(firms)
     .values({
@@ -57,6 +61,7 @@ export const createFirm = async (dto: CreateFirmDto): Promise<Firm> => {
 };
 
 export const updateFirm = async (id: string, dto: UpdateFirmDto): Promise<Firm> => {
+  logger.info(`Repository: Updating firm`);
   const existing = await findFirmById(id);
   if (!existing) throw new NotFoundError("Firm not found");
 
@@ -83,6 +88,7 @@ export const updateFirm = async (id: string, dto: UpdateFirmDto): Promise<Firm> 
 };
 
 export const deleteFirm = async (id: string): Promise<void> => {
+  logger.info(`Repository: Deleting firm`);
   const result = await db.delete(firms).where(eq(firms.id, id)).returning({ id: firms.id });
   if (result.length === 0) throw new NotFoundError("Firm not found");
 };

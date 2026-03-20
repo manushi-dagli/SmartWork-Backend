@@ -4,17 +4,21 @@ import type { AppAbility } from "../lib/ability.js";
 import * as employeeRepo from "../repositories/employee.repository.js";
 import * as superAdminRepo from "../repositories/superAdmin.repository.js";
 import { NotFoundError, ForbiddenError, ConflictError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 const SALT_ROUNDS = 10;
 
-export const listEmployees = async (query: ListQuery): Promise<PaginatedResult<EmployeeListItem>> =>
-  employeeRepo.findManyEmployees(query);
+export const listEmployees = async (query: ListQuery): Promise<PaginatedResult<EmployeeListItem>> => {
+  logger.info("Service: Listing employees");
+  return employeeRepo.findManyEmployees(query);
+};
 
 /** Check if a username is available (not taken by any employee or super admin). excludeId = current employee id when editing. */
 export const checkUsernameAvailable = async (
   username: string,
   excludeId?: string
 ): Promise<{ available: boolean }> => {
+  logger.info("Service: Checking username availability");
   const trimmed = username?.trim();
   if (!trimmed) return { available: true };
   const existingEmployee = await employeeRepo.findEmployeeByUsername(trimmed, excludeId);
@@ -25,6 +29,7 @@ export const checkUsernameAvailable = async (
 };
 
 export const getEmployeeById = async (id: string, ability: AppAbility): Promise<Employee> => {
+  logger.info(`Service: Fetching employee by id ${id}`);
   const employee = await employeeRepo.findEmployeeById(id);
   if (!employee) throw new NotFoundError("Employee not found");
   if (!ability.can("read", { type: "Employee", roleId: employee.roleId } as unknown as Parameters<AppAbility["can"]>[1])) {
@@ -34,6 +39,7 @@ export const getEmployeeById = async (id: string, ability: AppAbility): Promise<
 };
 
 export const createEmployee = async (dto: CreateEmployeeDto, ability: AppAbility): Promise<Employee> => {
+  logger.info("Service: Creating employee");
   if (!ability.can("create", { type: "Employee", assignRoleId: dto.roleId ?? null } as unknown as Parameters<AppAbility["can"]>[1])) {
     throw new ForbiddenError("You cannot assign this role to an employee");
   }
@@ -49,10 +55,12 @@ export const createEmployee = async (dto: CreateEmployeeDto, ability: AppAbility
       ? await bcrypt.hash(dto.password, SALT_ROUNDS)
       : undefined;
   const { password: _p, ...rest } = dto;
+  logger.info("Service: Persisting new employee");
   return employeeRepo.createEmployee(rest, { passwordHash });
 };
 
 export const updateEmployee = async (id: string, dto: UpdateEmployeeDto, ability: AppAbility): Promise<Employee> => {
+  logger.info(`Service: Updating employee ${id}`);
   const existing = await employeeRepo.findEmployeeById(id);
   if (!existing) throw new NotFoundError("Employee not found");
   if (!ability.can("update", { type: "Employee", roleId: existing.roleId } as unknown as Parameters<AppAbility["can"]>[1])) {
@@ -75,10 +83,12 @@ export const updateEmployee = async (id: string, dto: UpdateEmployeeDto, ability
       ? await bcrypt.hash(dto.password, SALT_ROUNDS)
       : undefined;
   const { password: _p, ...rest } = dto;
+  logger.info("Service: Persisting employee update");
   return employeeRepo.updateEmployee(id, rest, passwordHash !== undefined ? { passwordHash } : undefined);
 };
 
 export const deleteEmployee = async (id: string, ability: AppAbility): Promise<void> => {
+  logger.info(`Service: Deleting employee ${id}`);
   const employee = await employeeRepo.findEmployeeById(id);
   if (!employee) throw new NotFoundError("Employee not found");
   if (!ability.can("delete", { type: "Employee", roleId: employee.roleId } as unknown as Parameters<AppAbility["can"]>[1])) {
@@ -89,6 +99,7 @@ export const deleteEmployee = async (id: string, ability: AppAbility): Promise<v
 
 /** Update own profile (no ability check). Disallows roleId and isActive changes. */
 export const updateEmployeeSelf = async (id: string, dto: UpdateEmployeeDto): Promise<Employee> => {
+  logger.info(`Service: Updating own profile ${id}`);
   const existing = await employeeRepo.findEmployeeById(id);
   if (!existing) throw new NotFoundError("Employee not found");
   const { roleId: _r, isActive: _a, ...safeDto } = dto;
@@ -104,5 +115,6 @@ export const updateEmployeeSelf = async (id: string, dto: UpdateEmployeeDto): Pr
       ? await bcrypt.hash(safeDto.password, SALT_ROUNDS)
       : undefined;
   const { password: _p, ...rest } = safeDto;
+  logger.info("Service: Persisting profile update");
   return employeeRepo.updateEmployee(id, rest, passwordHash !== undefined ? { passwordHash } : undefined);
 };

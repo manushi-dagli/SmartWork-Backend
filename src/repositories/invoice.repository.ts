@@ -4,6 +4,7 @@ import { invoices } from "../db/schema.js";
 import type { InvoiceRow } from "../db/schema.js";
 import type { Invoice, CreateInvoiceDto, UpdateInvoiceDto } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: InvoiceRow): Invoice {
   return {
@@ -21,11 +22,13 @@ function mapRow(row: InvoiceRow): Invoice {
 }
 
 export async function listInvoices(): Promise<Invoice[]> {
+  logger.info(`Repository: Listing invoices`);
   const rows = await db.select().from(invoices).orderBy(desc(invoices.createdAt));
   return rows.map(mapRow);
 }
 
 export async function getById(id: string): Promise<Invoice | null> {
+  logger.info(`Repository: Fetching invoice by id`);
   const rows = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -33,6 +36,7 @@ export async function getById(id: string): Promise<Invoice | null> {
 }
 
 export async function create(dto: CreateInvoiceDto): Promise<Invoice> {
+  logger.info(`Repository: Creating invoice`);
   const [row] = await db
     .insert(invoices)
     .values({
@@ -50,6 +54,7 @@ export async function create(dto: CreateInvoiceDto): Promise<Invoice> {
 }
 
 export async function update(id: string, dto: UpdateInvoiceDto): Promise<Invoice> {
+  logger.info(`Repository: Updating invoice`);
   const existing = await getById(id);
   if (!existing) throw new NotFoundError("Invoice not found");
   const [row] = await db

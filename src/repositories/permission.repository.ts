@@ -2,6 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import type { Permission, PermissionScope } from "../common/types.js";
 import { permissions, rolePermissions, roleHierarchy } from "../db/schema.js";
 import { db } from "../config/database.js";
+import { logger } from "../lib/logger.js";
 
 /** In-memory cache for role permissions + descendants (used on every auth request). TTL 60s. */
 const CACHE_TTL_MS = 60_000;
@@ -48,6 +49,7 @@ function mapPermission(row: typeof permissions.$inferSelect): Permission {
 }
 
 export const findPermissionById = async (id: string): Promise<Permission | null> => {
+  logger.info(`Repository: Fetching permission by id`);
   const rows = await db.select().from(permissions).where(eq(permissions.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -55,6 +57,7 @@ export const findPermissionById = async (id: string): Promise<Permission | null>
 };
 
 export const findPermissionByCode = async (code: string): Promise<Permission | null> => {
+  logger.info(`Repository: Fetching permission by code`);
   const rows = await db.select().from(permissions).where(eq(permissions.code, code)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -62,12 +65,14 @@ export const findPermissionByCode = async (code: string): Promise<Permission | n
 };
 
 export const findAllPermissions = async (): Promise<Permission[]> => {
+  logger.info(`Repository: Listing permissions`);
   const rows = await db.select().from(permissions);
   return rows.map(mapPermission);
 };
 
 /** Permissions assigned to a role (from role_permissions). Cached 60s for auth performance. */
 export const findPermissionsByRoleId = async (roleId: string): Promise<Permission[]> => {
+  logger.info(`Repository: Fetching permissions by role id`);
   const cached = getCachedRolePermission(roleId);
   if (cached) return cached.permissions;
   const links = await db
@@ -94,6 +99,7 @@ export const findPermissionsByRoleId = async (roleId: string): Promise<Permissio
  * Used for permission scope "below" / "same_or_below". Cached 60s when used with findPermissionsByRoleId.
  */
 export const getDescendantRoleIds = async (roleId: string): Promise<string[]> => {
+  logger.info(`Repository: Resolving descendant role ids`);
   const cached = getCachedRolePermission(roleId);
   if (cached) return cached.descendantIds;
   return getDescendantRoleIdsFromDb(roleId);

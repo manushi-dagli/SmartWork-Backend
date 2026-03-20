@@ -13,13 +13,14 @@ import {
 } from "../validations/schemas.js";
 import * as taskRequestAttachmentRepo from "../repositories/taskRequestAttachment.repository.js";
 
+import { logger } from "../lib/logger.js";
 function taskRequestId(req: EmployeeAuthRequest): string {
   const id = req.params.id ?? req.params[0];
   return typeof id === "string" ? id : "";
 }
 
 export async function listTaskRequests(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/task-requests");
+  logger.info("Controller: GET /api/task-requests");
   const status = typeof req.query.status === "string" ? req.query.status : undefined;
   const allowed = ["PENDING", "ACCEPTED", "REJECTED"];
   const filters =
@@ -32,7 +33,7 @@ export async function listTaskRequests(req: EmployeeAuthRequest, res: Response):
 
 export async function getTaskRequest(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] GET /api/task-requests/:id", id);
+  logger.info(`Controller: GET /api/task-requests/:id ${id}`);
   const taskRequest = await taskRequestRepo.getTaskRequestWithDocuments(id);
   if (!taskRequest) {
     sendError(res, new NotFoundError("Task request not found"));
@@ -42,7 +43,7 @@ export async function getTaskRequest(req: EmployeeAuthRequest, res: Response): P
 }
 
 export async function createTaskRequest(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] POST /api/task-requests");
+  logger.info("Controller: POST /api/task-requests");
   try {
     const body = validateBody(req.body, createTaskRequestSchema);
     const taskRequest = await taskRequestRepo.createTaskRequest(body);
@@ -54,7 +55,7 @@ export async function createTaskRequest(req: EmployeeAuthRequest, res: Response)
 
 export async function updateTaskRequest(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] PATCH /api/task-requests/:id", id);
+  logger.info(`Controller: PATCH /api/task-requests/:id ${id}`);
   try {
     const body = validateBody(req.body, updateTaskRequestSchema);
     const taskRequest = await taskRequestRepo.updateTaskRequest(id, body);
@@ -73,7 +74,7 @@ export async function setTaskRequestDocuments(
   res: Response
 ): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] POST /api/task-requests/:id/documents", id);
+  logger.info(`Controller: POST /api/task-requests/:id/documents ${id}`);
   try {
     const { documentMasterIds: ids } = validateBody(req.body, setTaskRequestDocumentsSchema);
     const existing = await taskRequestRepo.getTaskRequestById(id);
@@ -94,7 +95,7 @@ export async function getTaskRequestDocuments(
   res: Response
 ): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] GET /api/task-requests/:id/documents", id);
+  logger.info(`Controller: GET /api/task-requests/:id/documents ${id}`);
   const existing = await taskRequestRepo.getTaskRequestById(id);
   if (!existing) {
     sendError(res, new NotFoundError("Task request not found"));
@@ -106,7 +107,7 @@ export async function getTaskRequestDocuments(
 
 export async function markTaskRequestSent(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] POST /api/task-requests/:id/send", id);
+  logger.info(`Controller: POST /api/task-requests/:id/send ${id}`);
   const body = (req.body as { emailed?: boolean; whatsapp?: boolean }) ?? {};
   const existing = await taskRequestRepo.getTaskRequestById(id);
   if (!existing) {
@@ -122,7 +123,7 @@ export async function markTaskRequestSent(req: EmployeeAuthRequest, res: Respons
 
 export async function acceptTaskRequest(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] POST /api/task-requests/:id/accept", id);
+  logger.info(`Controller: POST /api/task-requests/:id/accept ${id}`);
   try {
     const taskRequest = await taskRequestRepo.acceptTaskRequest(id);
     sendSuccess(res, taskRequest);
@@ -133,7 +134,7 @@ export async function acceptTaskRequest(req: EmployeeAuthRequest, res: Response)
 
 export async function rejectTaskRequest(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] POST /api/task-requests/:id/reject", id);
+  logger.info(`Controller: POST /api/task-requests/:id/reject ${id}`);
   try {
     const taskRequest = await taskRequestRepo.rejectTaskRequest(id);
     sendSuccess(res, taskRequest);
@@ -144,7 +145,7 @@ export async function rejectTaskRequest(req: EmployeeAuthRequest, res: Response)
 
 // Staff read-only config (no requireSuperAdmin)
 export async function listTasksForStaff(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/task-requests/task-types");
+  logger.info("Controller: GET /api/task-requests/task-types");
   const list = await taskConfigRepo.listTasks();
   sendSuccess(res, list);
 }
@@ -153,7 +154,7 @@ export async function listSubtasksWithTaskForStaff(
   req: EmployeeAuthRequest,
   res: Response
 ): Promise<void> {
-  console.log("[API] GET /api/task-requests/subtasks-with-task");
+  logger.info("Controller: GET /api/task-requests/subtasks-with-task");
   const list = await taskConfigRepo.listSubtasksWithTask();
   sendSuccess(res, list);
 }
@@ -162,7 +163,7 @@ export async function listDocumentsForStaff(
   req: EmployeeAuthRequest,
   res: Response
 ): Promise<void> {
-  console.log("[API] GET /api/task-requests/documents");
+  logger.info("Controller: GET /api/task-requests/documents");
   const list = await taskConfigRepo.listDocuments();
   sendSuccess(res, list);
 }
@@ -177,7 +178,7 @@ export async function uploadTaskRequestAttachment(
   res: Response
 ): Promise<void> {
   const id = taskRequestId(req);
-  console.log("[API] POST /api/task-requests/:id/attachments", id);
+  logger.info(`Controller: POST /api/task-requests/:id/attachments ${id}`);
   try {
     const existing = await taskRequestRepo.getTaskRequestById(id);
     if (!existing) {
@@ -209,7 +210,7 @@ export async function getTaskRequestAttachmentFile(
 ): Promise<void> {
   const id = taskRequestId(req);
   const attId = attachmentIdParam(req);
-  console.log("[API] GET /api/task-requests/:id/attachments/:attId/file", id, attId);
+  logger.info(`Controller: GET /api/task-requests/:id/attachments/:attId/file ${id} ${attId}`);
   const existing = await taskRequestRepo.getTaskRequestById(id);
   if (!existing) {
     sendError(res, new NotFoundError("Task request not found"));
@@ -234,7 +235,7 @@ export async function deleteTaskRequestAttachment(
 ): Promise<void> {
   const id = taskRequestId(req);
   const attId = attachmentIdParam(req);
-  console.log("[API] DELETE /api/task-requests/:id/attachments/:attId", id, attId);
+  logger.info(`Controller: DELETE /api/task-requests/:id/attachments/:attId ${id} ${attId}`);
   const existing = await taskRequestRepo.getTaskRequestById(id);
   if (!existing) {
     sendError(res, new NotFoundError("Task request not found"));

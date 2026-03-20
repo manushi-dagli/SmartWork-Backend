@@ -7,6 +7,7 @@ import {
   invoices,
   allocatedTasks,
 } from "../db/schema.js";
+import { logger } from "../lib/logger.js";
 
 export interface DashboardStats {
   pendingTaskRequests: number;
@@ -18,6 +19,7 @@ export interface DashboardStats {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
+  logger.info(`Repository: Fetching dashboard stats`);
   const [pendingTr] = await db
     .select({ value: count(taskRequests.id) })
     .from(taskRequests)

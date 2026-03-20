@@ -3,6 +3,7 @@ import type { Client, CreateClientDto, UpdateClientDto } from "../common/types.j
 import { NotFoundError } from "../common/errors.js";
 import { clients } from "../db/schema.js";
 import { db } from "../config/database.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: typeof clients.$inferSelect): Client {
   return {
@@ -37,6 +38,7 @@ function mapRow(row: typeof clients.$inferSelect): Client {
 }
 
 export const findClientById = async (id: string): Promise<Client | null> => {
+  logger.info(`Repository: Fetching client by id`);
   const rows = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -44,11 +46,13 @@ export const findClientById = async (id: string): Promise<Client | null> => {
 };
 
 export const findManyClients = async (): Promise<Client[]> => {
+  logger.info(`Repository: Listing clients`);
   const rows = await db.select().from(clients).orderBy(asc(clients.firstName), asc(clients.lastName));
   return rows.map((r) => mapRow(r));
 };
 
 export const createClient = async (dto: CreateClientDto): Promise<Client> => {
+  logger.info(`Repository: Creating client`);
   const [row] = await db
     .insert(clients)
     .values({
@@ -83,6 +87,7 @@ export const createClient = async (dto: CreateClientDto): Promise<Client> => {
 };
 
 export const updateClient = async (id: string, dto: UpdateClientDto): Promise<Client> => {
+  logger.info(`Repository: Updating client`);
   const existing = await findClientById(id);
   if (!existing) throw new NotFoundError("Client not found");
 
@@ -126,6 +131,7 @@ export const updateClient = async (id: string, dto: UpdateClientDto): Promise<Cl
 };
 
 export const deleteClient = async (id: string): Promise<void> => {
+  logger.info(`Repository: Deleting client`);
   const result = await db.delete(clients).where(eq(clients.id, id)).returning({ id: clients.id });
   if (result.length === 0) throw new NotFoundError("Client not found");
 };

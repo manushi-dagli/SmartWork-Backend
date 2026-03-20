@@ -6,12 +6,14 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import { apiRouter } from "./routes/index.js";
 import { authRoutes } from "./routes/auth.routes.js";
-import { requestLogger } from "./middleware/requestLogger.js";
 import { env } from "./config/env.js";
+import { logger, morganMiddleware } from "./lib/logger.js";
+import { requestIdMiddleware } from "./middleware/requestId.middleware.js";
 
 const app = express();
 
-app.use(requestLogger);
+app.use(requestIdMiddleware);
+app.use(morganMiddleware);
 
 app.use(
   cors({
@@ -32,10 +34,10 @@ app.all("/api/auth/*", toNodeHandler(auth));
 app.use("/api", apiRouter);
 
 app.get("/health", (_req, res) => {
-  console.log("[API] GET /health");
+  logger.info("Controller: GET /health");
   res.json({ ok: true, service: "smartwork-backend" });
 });
 
 app.listen(env.port, () => {
-  console.log(`Smart Work API listening on http://localhost:${env.port}`);
+  logger.info(`Smart Work API listening on http://localhost:${env.port}`);
 });

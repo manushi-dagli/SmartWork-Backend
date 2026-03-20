@@ -8,6 +8,7 @@ import type {
   UpdateAssignmentDto,
 } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 export type AssignmentStatus = "IN_PROGRESS" | "COMPLETED";
 
@@ -37,6 +38,7 @@ export interface AssignmentListFilters {
 export async function listAssignments(
   filters?: AssignmentListFilters
 ): Promise<Assignment[]> {
+  logger.info(`Repository: Listing assignments`);
   const conditions = [];
   if (filters?.clientId) {
     conditions.push(eq(assignments.clientId, filters.clientId));
@@ -55,6 +57,7 @@ export async function listAssignments(
 
 /** Get single assignment by id. */
 export async function getAssignmentById(id: string): Promise<Assignment | null> {
+  logger.info(`Repository: Fetching assignment by id`);
   const rows = await db
     .select()
     .from(assignments)
@@ -72,6 +75,7 @@ export async function getAssignmentWithDetails(id: string): Promise<{
   task: { id: string; name: string } | null;
   manager: { id: string; firstName: string; lastName: string } | null;
 } | null> {
+  logger.info(`Repository: Fetching assignment with details by id`);
   const row = await db
     .select()
     .from(assignments)
@@ -110,6 +114,7 @@ export async function getAssignmentWithDetails(id: string): Promise<{
 export async function createAssignment(
   dto: CreateAssignmentDto
 ): Promise<Assignment> {
+  logger.info(`Repository: Creating assignment`);
   const [row] = await db
     .insert(assignments)
     .values({
@@ -131,6 +136,7 @@ export async function updateAssignment(
   id: string,
   dto: UpdateAssignmentDto
 ): Promise<Assignment> {
+  logger.info(`Repository: Updating assignment`);
   const existing = await getAssignmentById(id);
   if (!existing) throw new NotFoundError("Assignment not found");
 
@@ -159,6 +165,7 @@ export async function updateAssignment(
 }
 
 export async function deleteAssignment(id: string): Promise<void> {
+  logger.info(`Repository: Deleting assignment`);
   const deleted = await db
     .delete(assignments)
     .where(eq(assignments.id, id))

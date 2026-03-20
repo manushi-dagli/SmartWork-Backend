@@ -3,6 +3,7 @@ import type { Family, CreateFamilyDto, UpdateFamilyDto } from "../common/types.j
 import { NotFoundError } from "../common/errors.js";
 import { family } from "../db/schema.js";
 import { db } from "../config/database.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: typeof family.$inferSelect): Family {
   return {
@@ -14,6 +15,7 @@ function mapRow(row: typeof family.$inferSelect): Family {
 }
 
 export const findFamilyById = async (id: string): Promise<Family | null> => {
+  logger.info(`Repository: Fetching family by id`);
   const rows = await db.select().from(family).where(eq(family.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -21,17 +23,20 @@ export const findFamilyById = async (id: string): Promise<Family | null> => {
 };
 
 export const findManyFamilies = async (): Promise<Family[]> => {
+  logger.info(`Repository: Listing families`);
   const rows = await db.select().from(family).orderBy(asc(family.name));
   return rows.map((r) => mapRow(r));
 };
 
 export const createFamily = async (dto: CreateFamilyDto): Promise<Family> => {
+  logger.info(`Repository: Creating family`);
   const [row] = await db.insert(family).values({ name: dto.name }).returning();
   if (!row) throw new Error("Insert failed");
   return mapRow(row);
 };
 
 export const updateFamily = async (id: string, dto: UpdateFamilyDto): Promise<Family> => {
+  logger.info(`Repository: Updating family`);
   const existing = await findFamilyById(id);
   if (!existing) throw new NotFoundError("Family not found");
 
@@ -48,6 +53,7 @@ export const updateFamily = async (id: string, dto: UpdateFamilyDto): Promise<Fa
 };
 
 export const deleteFamily = async (id: string): Promise<void> => {
+  logger.info(`Repository: Deleting family`);
   const result = await db.delete(family).where(eq(family.id, id)).returning({ id: family.id });
   if (result.length === 0) throw new NotFoundError("Family not found");
 };

@@ -8,6 +8,7 @@ import type {
   UpdateAssignmentDocumentDto,
 } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: AssignmentDocumentRow): AssignmentDocument {
   return {
@@ -27,6 +28,7 @@ function mapRow(row: AssignmentDocumentRow): AssignmentDocument {
 export async function listByAssignment(
   assignmentId: string
 ): Promise<AssignmentDocument[]> {
+  logger.info(`Repository: Listing assignment documents by assignment id`);
   const rows = await db
     .select()
     .from(assignmentDocuments)
@@ -36,6 +38,7 @@ export async function listByAssignment(
 }
 
 export async function getById(id: string): Promise<AssignmentDocument | null> {
+  logger.info(`Repository: Fetching assignment document by id`);
   const rows = await db
     .select()
     .from(assignmentDocuments)
@@ -49,6 +52,7 @@ export async function getById(id: string): Promise<AssignmentDocument | null> {
 export async function create(
   dto: CreateAssignmentDocumentDto
 ): Promise<AssignmentDocument> {
+  logger.info(`Repository: Creating assignment document`);
   const [row] = await db
     .insert(assignmentDocuments)
     .values({
@@ -69,6 +73,7 @@ export async function update(
   id: string,
   dto: UpdateAssignmentDocumentDto
 ): Promise<AssignmentDocument> {
+  logger.info(`Repository: Updating assignment document`);
   const existing = await getById(id);
   if (!existing) throw new NotFoundError("Assignment document not found");
   const [row] = await db
@@ -88,6 +93,7 @@ export async function update(
 }
 
 export async function deleteById(id: string): Promise<void> {
+  logger.info(`Repository: Deleting assignment document`);
   const deleted = await db
     .delete(assignmentDocuments)
     .where(eq(assignmentDocuments.id, id))

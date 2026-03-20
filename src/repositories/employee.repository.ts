@@ -3,6 +3,7 @@ import type { Employee, EmployeeListItem, CreateEmployeeDto, UpdateEmployeeDto, 
 import { NotFoundError } from "../common/errors.js";
 import { employees, roles } from "../db/schema.js";
 import { db } from "../config/database.js";
+import { logger } from "../lib/logger.js";
 
 const sortColumnMap = {
   firstName: employees.firstName,
@@ -40,6 +41,7 @@ function mapRow(row: typeof employees.$inferSelect): Employee {
 }
 
 export const findEmployeeById = async (id: string): Promise<Employee | null> => {
+  logger.info(`Repository: Fetching employee by id`);
   const rows = await db.select().from(employees).where(eq(employees.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -50,6 +52,7 @@ export const findEmployeeById = async (id: string): Promise<Employee | null> => 
 export const findEmployeeWithRoleById = async (
   id: string
 ): Promise<{ employee: Employee; role: Role | null } | null> => {
+  logger.info(`Repository: Fetching employee with role by id`);
   const rows = await db
     .select({
       employee: employees,
@@ -86,6 +89,7 @@ export const findEmployeeByUsername = async (
   username: string,
   excludeId?: string
 ): Promise<Employee | null> => {
+  logger.info(`Repository: Fetching employee by username`);
   if (!username.trim()) return null;
   const rows = await db.select().from(employees).where(eq(employees.username, username.trim())).limit(1);
   const row = rows[0];
@@ -98,6 +102,7 @@ export const findEmployeeByUsername = async (
 export const findEmployeeByUsernameOrEmail = async (
   usernameOrEmail: string
 ): Promise<(typeof employees.$inferSelect) | null> => {
+  logger.info(`Repository: Fetching employee by username or email`);
   const rows = await db
     .select()
     .from(employees)
@@ -109,6 +114,7 @@ export const findEmployeeByUsernameOrEmail = async (
 };
 
 export const findManyEmployees = async (query: ListQuery = {}): Promise<PaginatedResult<EmployeeListItem>> => {
+  logger.info(`Repository: Listing employees`);
   const page = Math.max(1, query.page ?? 1);
   const limit = Math.min(100, Math.max(1, query.limit ?? 10));
   const offset = (page - 1) * limit;
@@ -170,6 +176,7 @@ export const createEmployee = async (
   dto: CreateEmployeeDto,
   options?: { passwordHash?: string | null }
 ): Promise<Employee> => {
+  logger.info(`Repository: Creating employee`);
   const [row] = await db
     .insert(employees)
     .values({
@@ -204,6 +211,7 @@ export const updateEmployee = async (
   dto: UpdateEmployeeDto,
   options?: { passwordHash?: string | null }
 ): Promise<Employee> => {
+  logger.info(`Repository: Updating employee`);
   const existing = await findEmployeeById(id);
   if (!existing) throw new NotFoundError("Employee not found");
 
@@ -239,6 +247,7 @@ export const updateEmployee = async (
 };
 
 export const deleteEmployee = async (id: string): Promise<void> => {
+  logger.info(`Repository: Deleting employee`);
   const result = await db.delete(employees).where(eq(employees.id, id)).returning({ id: employees.id });
   if (result.length === 0) throw new NotFoundError("Employee not found");
 };

@@ -6,6 +6,7 @@ import * as superAdminRepo from "../repositories/superAdmin.repository.js";
 import { defineAbilityFromRolePermissions, type AppAbility, type PermissionLike } from "../lib/ability.js";
 import { env } from "../config/env.js";
 import type { RoleValue } from "../common/types.js";
+import { logger } from "../lib/logger.js";
 
 const SUPER_ADMIN_ABILITY = defineAbilityFromRolePermissions(
   "",
@@ -158,7 +159,11 @@ export const requireEmployeeAuth = async (
       descendantRoleIds,
     };
     next();
-  } catch {
+  } catch (err) {
+    logger.error(
+      `Middleware: Employee token validation error: ${err instanceof Error ? err.message : String(err)}`,
+      err instanceof Error ? err : { err },
+    );
     res.status(401).json({ success: false, error: "Unauthorized", code: "UNAUTHORIZED" });
   }
 };

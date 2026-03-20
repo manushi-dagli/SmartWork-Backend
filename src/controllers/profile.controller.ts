@@ -7,11 +7,12 @@ import { sendSuccess, sendError } from "../common/response.js";
 import { validateBody } from "../validations/validate.js";
 import { updateProfileSchema } from "../validations/schemas.js";
 
+import { logger } from "../lib/logger.js";
 /**
  * GET /api/profile — return full employee (or super admin) details for the logged-in user (JWT auth).
  */
 export async function getProfile(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/profile");
+  logger.info("Controller: GET /api/profile");
   const id = req.employee!.id;
   if (req.employee!.isSuperAdmin) {
     const superAdmin = await superAdminRepo.findSuperAdminById(id);
@@ -51,7 +52,7 @@ export async function getProfile(req: EmployeeAuthRequest, res: Response): Promi
  * PATCH /api/profile — update the logged-in user's details (employees only).
  */
 export async function updateProfile(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] PATCH /api/profile");
+  logger.info("Controller: PATCH /api/profile");
   if (req.employee!.isSuperAdmin) {
     res.status(400).json({
       success: false,

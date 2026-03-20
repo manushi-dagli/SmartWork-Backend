@@ -9,6 +9,7 @@ import {
   updateMilestoneSchema,
 } from "../validations/schemas.js";
 
+import { logger } from "../lib/logger.js";
 function milestoneId(req: EmployeeAuthRequest): string {
   const id = req.params.id ?? req.params[0];
   return typeof id === "string" ? id : "";
@@ -22,7 +23,7 @@ export async function listByAssignment(
     typeof req.params.assignmentId === "string"
       ? req.params.assignmentId
       : req.params[0] ?? "";
-  console.log("[API] GET /api/assignments/:assignmentId/milestones", assignmentId);
+  logger.info(`Controller: GET /api/assignments/:assignmentId/milestones ${assignmentId}`);
   const list = await milestoneRepo.listMilestonesByAssignment(assignmentId);
   sendSuccess(res, list);
 }
@@ -32,7 +33,7 @@ export async function getMilestone(
   res: Response
 ): Promise<void> {
   const id = milestoneId(req);
-  console.log("[API] GET /api/milestones/:id", id);
+  logger.info(`Controller: GET /api/milestones/:id ${id}`);
   const milestone = await milestoneRepo.getMilestoneById(id);
   if (!milestone) {
     sendError(res, new NotFoundError("Milestone not found"));
@@ -45,7 +46,7 @@ export async function createMilestone(
   req: EmployeeAuthRequest,
   res: Response
 ): Promise<void> {
-  console.log("[API] POST /api/milestones");
+  logger.info("Controller: POST /api/milestones");
   try {
     const body = validateBody(req.body, createMilestoneSchema);
     const milestone = await milestoneRepo.createMilestone(body);
@@ -60,7 +61,7 @@ export async function updateMilestone(
   res: Response
 ): Promise<void> {
   const id = milestoneId(req);
-  console.log("[API] PATCH /api/milestones/:id", id);
+  logger.info(`Controller: PATCH /api/milestones/:id ${id}`);
   try {
     const body = validateBody(req.body, updateMilestoneSchema);
     const milestone = await milestoneRepo.updateMilestone(id, body);
@@ -75,7 +76,7 @@ export async function deleteMilestone(
   res: Response
 ): Promise<void> {
   const id = milestoneId(req);
-  console.log("[API] DELETE /api/milestones/:id", id);
+  logger.info(`Controller: DELETE /api/milestones/:id ${id}`);
   try {
     await milestoneRepo.deleteMilestone(id);
     sendSuccess(res, { deleted: true });

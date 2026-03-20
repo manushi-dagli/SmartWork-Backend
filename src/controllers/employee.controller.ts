@@ -6,8 +6,9 @@ import type { ListQuery } from "../common/types.js";
 import { validateBody } from "../validations/validate.js";
 import { createEmployeeSchema, updateEmployeeSchema } from "../validations/schemas.js";
 
+import { logger } from "../lib/logger.js";
 export async function checkUsername(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/employees/check-username");
+  logger.info("Controller: GET /api/employees/check-username");
   const username = typeof req.query.username === "string" ? req.query.username : "";
   const excludeId = typeof req.query.excludeId === "string" ? req.query.excludeId : undefined;
   const result = await employeeService.checkUsernameAvailable(username, excludeId);
@@ -15,7 +16,7 @@ export async function checkUsername(req: EmployeeAuthRequest, res: Response): Pr
 }
 
 export async function listEmployees(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/employees");
+  logger.info("Controller: GET /api/employees");
   const query: ListQuery = {
     page: req.query.page ? Number(req.query.page) : undefined,
     limit: req.query.limit ? Number(req.query.limit) : undefined,
@@ -28,14 +29,14 @@ export async function listEmployees(req: EmployeeAuthRequest, res: Response): Pr
 }
 
 export async function getEmployee(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/employees/:id");
+  logger.info("Controller: GET /api/employees/:id");
   const id = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0] ?? "";
   const employee = await employeeService.getEmployeeById(id, req.ability!);
   sendSuccess(res, employee);
 }
 
 export async function createEmployee(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] POST /api/employees");
+  logger.info("Controller: POST /api/employees");
   try {
     const body = validateBody(req.body, createEmployeeSchema);
     const employee = await employeeService.createEmployee(body, req.ability!);
@@ -46,7 +47,7 @@ export async function createEmployee(req: EmployeeAuthRequest, res: Response): P
 }
 
 export async function updateEmployee(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] PATCH /api/employees/:id");
+  logger.info("Controller: PATCH /api/employees/:id");
   const id = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0] ?? "";
   try {
     const body = validateBody(req.body, updateEmployeeSchema);
@@ -58,7 +59,7 @@ export async function updateEmployee(req: EmployeeAuthRequest, res: Response): P
 }
 
 export async function deleteEmployee(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] DELETE /api/employees/:id");
+  logger.info("Controller: DELETE /api/employees/:id");
   const id = typeof req.params.id === "string" ? req.params.id : req.params.id?.[0] ?? "";
   await employeeService.deleteEmployee(id, req.ability!);
   sendSuccess(res, { deleted: true });

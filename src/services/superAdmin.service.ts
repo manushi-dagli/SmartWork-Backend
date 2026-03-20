@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import * as employeeRepo from "../repositories/employee.repository.js";
 import * as superAdminRepo from "../repositories/superAdmin.repository.js";
 import { ConflictError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 const SALT_ROUNDS = 10;
 
@@ -15,6 +16,7 @@ export interface CreateSuperAdminDto {
 }
 
 export const createSuperAdmin = async (dto: CreateSuperAdminDto) => {
+  logger.info("Service: Creating super admin");
   const existingEmployeeByUsername = await employeeRepo.findEmployeeByUsernameOrEmail(dto.username);
   const existingEmployeeByEmail =
     dto.email !== dto.username ? await employeeRepo.findEmployeeByUsernameOrEmail(dto.email) : existingEmployeeByUsername;
@@ -28,6 +30,7 @@ export const createSuperAdmin = async (dto: CreateSuperAdminDto) => {
     throw new ConflictError("A super admin with this username or email already exists");
   }
   const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
+  logger.info("Service: Persisting super admin");
   return superAdminRepo.createSuperAdmin({
     username: dto.username,
     email: dto.email,

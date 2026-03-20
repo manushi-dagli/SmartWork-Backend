@@ -3,6 +3,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth.js";
 import { defineAbilityFor, type AppAbility } from "../lib/ability.js";
 import type { Role } from "../lib/auth.js";
+import { logger } from "../lib/logger.js";
 
 export type AuthRequest = Request & {
   session?: {
@@ -37,7 +38,11 @@ export async function requireSession(
     const role = (session.user as { role?: Role }).role ?? "staff";
     req.ability = defineAbilityFor(role);
     next();
-  } catch {
+  } catch (err) {
+    logger.error(
+      `Middleware: Session error: ${err instanceof Error ? err.message : String(err)}`,
+      err instanceof Error ? err : { err },
+    );
     res.status(401).json({ success: false, error: "Unauthorized", code: "UNAUTHORIZED" });
   }
 }

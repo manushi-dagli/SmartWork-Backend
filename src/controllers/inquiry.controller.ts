@@ -11,13 +11,14 @@ import {
   setInquiryDocumentsSchema,
 } from "../validations/schemas.js";
 
+import { logger } from "../lib/logger.js";
 function inquiryId(req: EmployeeAuthRequest): string {
   const id = req.params.id ?? req.params[0];
   return typeof id === "string" ? id : "";
 }
 
 export async function listInquiries(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/inquiries");
+  logger.info("Controller: GET /api/inquiries");
   const status = typeof req.query.status === "string" ? req.query.status : undefined;
   const allowed = ["PENDING", "ACCEPTED", "REJECTED"];
   const filters =
@@ -28,7 +29,7 @@ export async function listInquiries(req: EmployeeAuthRequest, res: Response): Pr
 
 export async function getInquiry(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = inquiryId(req);
-  console.log("[API] GET /api/inquiries/:id", id);
+  logger.info(`Controller: GET /api/inquiries/:id ${id}`);
   const inquiry = await inquiryRepo.getInquiryWithDocuments(id);
   if (!inquiry) {
     sendError(res, new NotFoundError("Inquiry not found"));
@@ -38,7 +39,7 @@ export async function getInquiry(req: EmployeeAuthRequest, res: Response): Promi
 }
 
 export async function createInquiry(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] POST /api/inquiries");
+  logger.info("Controller: POST /api/inquiries");
   try {
     const body = validateBody(req.body, createInquirySchema);
     const inquiry = await inquiryRepo.createInquiry(body);
@@ -50,7 +51,7 @@ export async function createInquiry(req: EmployeeAuthRequest, res: Response): Pr
 
 export async function updateInquiry(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = inquiryId(req);
-  console.log("[API] PATCH /api/inquiries/:id", id);
+  logger.info(`Controller: PATCH /api/inquiries/:id ${id}`);
   try {
     const body = validateBody(req.body, updateInquirySchema);
     const inquiry = await inquiryRepo.updateInquiry(id, body);
@@ -66,7 +67,7 @@ export async function updateInquiry(req: EmployeeAuthRequest, res: Response): Pr
 
 export async function setInquiryDocuments(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = inquiryId(req);
-  console.log("[API] POST /api/inquiries/:id/documents", id);
+  logger.info(`Controller: POST /api/inquiries/:id/documents ${id}`);
   try {
     const { documentMasterIds: ids } = validateBody(req.body, setInquiryDocumentsSchema);
     const existing = await inquiryRepo.getInquiryById(id);
@@ -84,7 +85,7 @@ export async function setInquiryDocuments(req: EmployeeAuthRequest, res: Respons
 
 export async function getInquiryDocuments(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = inquiryId(req);
-  console.log("[API] GET /api/inquiries/:id/documents", id);
+  logger.info(`Controller: GET /api/inquiries/:id/documents ${id}`);
   const existing = await inquiryRepo.getInquiryById(id);
   if (!existing) {
     sendError(res, new NotFoundError("Inquiry not found"));
@@ -96,7 +97,7 @@ export async function getInquiryDocuments(req: EmployeeAuthRequest, res: Respons
 
 export async function markInquirySent(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = inquiryId(req);
-  console.log("[API] POST /api/inquiries/:id/send", id);
+  logger.info(`Controller: POST /api/inquiries/:id/send ${id}`);
   const body = (req.body as { emailed?: boolean; whatsapp?: boolean }) ?? {};
   const existing = await inquiryRepo.getInquiryById(id);
   if (!existing) {
@@ -112,7 +113,7 @@ export async function markInquirySent(req: EmployeeAuthRequest, res: Response): 
 
 export async function acceptInquiry(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = inquiryId(req);
-  console.log("[API] POST /api/inquiries/:id/accept", id);
+  logger.info(`Controller: POST /api/inquiries/:id/accept ${id}`);
   try {
     const inquiry = await inquiryRepo.acceptInquiry(id);
     sendSuccess(res, inquiry);
@@ -123,7 +124,7 @@ export async function acceptInquiry(req: EmployeeAuthRequest, res: Response): Pr
 
 export async function rejectInquiry(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const id = inquiryId(req);
-  console.log("[API] POST /api/inquiries/:id/reject", id);
+  logger.info(`Controller: POST /api/inquiries/:id/reject ${id}`);
   try {
     const inquiry = await inquiryRepo.rejectInquiry(id);
     sendSuccess(res, inquiry);
@@ -134,32 +135,32 @@ export async function rejectInquiry(req: EmployeeAuthRequest, res: Response): Pr
 
 // Staff read-only config (no requireSuperAdmin)
 export async function listInquiryTypesForStaff(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/inquiries/inquiry-types");
+  logger.info("Controller: GET /api/inquiries/inquiry-types");
   const list = await inquiryConfigRepo.listInquiryTypes();
   sendSuccess(res, list);
 }
 
 export async function listDocumentsForStaff(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/inquiries/documents");
+  logger.info("Controller: GET /api/inquiries/documents");
   const list = await inquiryConfigRepo.listDocuments();
   sendSuccess(res, list);
 }
 
 export async function getDocumentsByInquiryType(req: EmployeeAuthRequest, res: Response): Promise<void> {
   const inquiryTypeId = typeof req.params.inquiryTypeId === "string" ? req.params.inquiryTypeId : "";
-  console.log("[API] GET /api/inquiries/documents-by-type/:inquiryTypeId", inquiryTypeId);
+  logger.info(`Controller: GET /api/inquiries/documents-by-type/:inquiryTypeId ${inquiryTypeId}`);
   const list = await inquiryRepo.getDocumentsByInquiryType(inquiryTypeId);
   sendSuccess(res, list);
 }
 
 export async function listAssignmentTermTemplatesForStaff(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/inquiries/assignment-term-templates");
+  logger.info("Controller: GET /api/inquiries/assignment-term-templates");
   const list = await inquiryConfigRepo.listAssignmentTermTemplates();
   sendSuccess(res, list);
 }
 
 export async function listPaymentTermTemplatesForStaff(req: EmployeeAuthRequest, res: Response): Promise<void> {
-  console.log("[API] GET /api/inquiries/payment-term-templates");
+  logger.info("Controller: GET /api/inquiries/payment-term-templates");
   const list = await inquiryConfigRepo.listPaymentTermTemplates();
   sendSuccess(res, list);
 }

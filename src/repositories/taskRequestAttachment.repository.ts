@@ -2,6 +2,7 @@ import { eq, and } from "drizzle-orm";
 import { db } from "../config/database.js";
 import { taskRequestAttachments } from "../db/schema.js";
 import type { TaskRequestAttachmentRow } from "../db/schema.js";
+import { logger } from "../lib/logger.js";
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
@@ -26,6 +27,7 @@ export interface CreateAttachmentDto {
 export async function createAttachment(
   dto: CreateAttachmentDto
 ): Promise<TaskRequestAttachmentRow> {
+  logger.info(`Repository: Creating task request attachment`);
   if (dto.content.length > MAX_FILE_SIZE_BYTES) {
     throw new Error("File size must not exceed 5MB");
   }
@@ -51,6 +53,7 @@ export async function getAttachmentById(
   attachmentId: string,
   taskRequestId: string
 ): Promise<(TaskRequestAttachmentRow & { content: Buffer }) | undefined> {
+  logger.info(`Repository: Fetching task request attachment by id`);
   const rows = await db
     .select()
     .from(taskRequestAttachments)
@@ -68,6 +71,7 @@ export async function deleteAttachment(
   attachmentId: string,
   taskRequestId: string
 ): Promise<boolean> {
+  logger.info(`Repository: Deleting task request attachment`);
   const existing = await getAttachmentById(attachmentId, taskRequestId);
   if (!existing) return false;
   await db

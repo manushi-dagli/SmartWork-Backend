@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { superAdmins } from "../db/schema.js";
 import { db } from "../config/database.js";
+import { logger } from "../lib/logger.js";
 
 export interface SuperAdmin {
   id: string;
@@ -27,6 +28,7 @@ function mapRow(row: typeof superAdmins.$inferSelect): SuperAdmin {
 }
 
 export const findSuperAdminById = async (id: string): Promise<SuperAdmin | null> => {
+  logger.info(`Repository: Fetching super admin by id`);
   const rows = await db.select().from(superAdmins).where(eq(superAdmins.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -37,6 +39,7 @@ export const findSuperAdminById = async (id: string): Promise<SuperAdmin | null>
 export const findSuperAdminByUsernameOrEmail = async (
   usernameOrEmail: string
 ): Promise<(SuperAdmin & { passwordHash: string }) | null> => {
+  logger.info(`Repository: Fetching super admin by username or email`);
   const rows = await db
     .select()
     .from(superAdmins)
@@ -59,6 +62,7 @@ export const createSuperAdmin = async (dto: {
   lastName: string;
   middleName?: string | null;
 }): Promise<SuperAdmin> => {
+  logger.info(`Repository: Creating super admin`);
   const [row] = await db
     .insert(superAdmins)
     .values({

@@ -8,6 +8,7 @@ import type {
   UpdateMilestoneDto,
 } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: MilestoneRow): Milestone {
   return {
@@ -25,6 +26,7 @@ function mapRow(row: MilestoneRow): Milestone {
 export async function listMilestonesByAssignment(
   assignmentId: string
 ): Promise<Milestone[]> {
+  logger.info(`Repository: Listing milestones by assignment id`);
   const rows = await db
     .select()
     .from(milestones)
@@ -34,6 +36,7 @@ export async function listMilestonesByAssignment(
 }
 
 export async function getMilestoneById(id: string): Promise<Milestone | null> {
+  logger.info(`Repository: Fetching milestone by id`);
   const rows = await db
     .select()
     .from(milestones)
@@ -47,6 +50,7 @@ export async function getMilestoneById(id: string): Promise<Milestone | null> {
 export async function createMilestone(
   dto: CreateMilestoneDto
 ): Promise<Milestone> {
+  logger.info(`Repository: Creating milestone`);
   const [row] = await db
     .insert(milestones)
     .values({
@@ -65,6 +69,7 @@ export async function updateMilestone(
   id: string,
   dto: UpdateMilestoneDto
 ): Promise<Milestone> {
+  logger.info(`Repository: Updating milestone`);
   const existing = await getMilestoneById(id);
   if (!existing) throw new NotFoundError("Milestone not found");
 
@@ -88,6 +93,7 @@ export async function updateMilestone(
 }
 
 export async function deleteMilestone(id: string): Promise<void> {
+  logger.info(`Repository: Deleting milestone`);
   const deleted = await db
     .delete(milestones)
     .where(eq(milestones.id, id))

@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../config/database.js";
 import { roles, permissions, rolePermissions, roleHierarchy } from "./schema.js";
 import type { RoleValue } from "../common/types.js";
+import { logger } from "../lib/logger.js";
 
 const ROLES: { value: RoleValue; name: string }[] = [
   { value: "SUPER_ADMIN", name: "Super Admin" },
@@ -172,11 +173,11 @@ async function seed() {
     }
   }
 
-  console.log("Seed complete: roles, permissions, role_permissions, role_hierarchy.");
+  logger.info("Seed complete: roles, permissions, role_permissions, role_hierarchy.");
   process.exit(0);
 }
 
 seed().catch((e) => {
-  console.error("Seed failed:", e);
+  logger.error(`Seed failed: ${e instanceof Error ? e.message : String(e)}`);
   process.exit(1);
 });

@@ -10,6 +10,7 @@ import type { TaskRequestRow } from "../db/schema.js";
 import type { CreateClientDto } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
 import * as clientRepo from "./client.repository.js";
+import { logger } from "../lib/logger.js";
 
 export type TaskRequestStatus = "PENDING" | "ACCEPTED" | "REJECTED";
 
@@ -35,6 +36,7 @@ export interface DocumentForTaskRequest {
 export async function listTaskRequests(filters?: {
   status?: TaskRequestStatus;
 }): Promise<TaskRequestRow[]> {
+  logger.info(`Repository: Listing task requests`);
   if (filters?.status) {
     return db
       .select()
@@ -47,6 +49,7 @@ export async function listTaskRequests(filters?: {
 
 /** Get single task request by id. */
 export async function getTaskRequestById(id: string): Promise<TaskRequestRow | undefined> {
+  logger.info(`Repository: Fetching task request by id`);
   const rows = await db.select().from(taskRequests).where(eq(taskRequests.id, id)).limit(1);
   return rows[0];
 }
@@ -55,6 +58,7 @@ export async function getTaskRequestById(id: string): Promise<TaskRequestRow | u
 export async function getTaskRequestWithDocuments(
   id: string
 ): Promise<TaskRequestWithDocuments | undefined> {
+  logger.info(`Repository: Fetching task request with documents by id`);
   const tr = await getTaskRequestById(id);
   if (!tr) return undefined;
   const links = await db
@@ -99,6 +103,7 @@ export interface CreateTaskRequestDto {
 }
 
 export async function createTaskRequest(dto: CreateTaskRequestDto): Promise<TaskRequestRow> {
+  logger.info(`Repository: Creating task request`);
   const [row] = await db
     .insert(taskRequests)
     .values({
@@ -141,6 +146,7 @@ export async function updateTaskRequest(
   id: string,
   dto: UpdateTaskRequestDto
 ): Promise<TaskRequestRow | undefined> {
+  logger.info(`Repository: Updating task request`);
   const set: Record<string, unknown> = { ...dto, updatedAt: new Date() };
   const [row] = await db
     .update(taskRequests)
@@ -155,6 +161,7 @@ export async function setTaskRequestDocuments(
   taskRequestId: string,
   documentMasterIds: string[]
 ): Promise<void> {
+  logger.info(`Repository: Setting task request documents`);
   await db.delete(taskRequestDocuments).where(eq(taskRequestDocuments.taskRequestId, taskRequestId));
   if (documentMasterIds.length === 0) return;
   await db.insert(taskRequestDocuments).values(
@@ -169,6 +176,7 @@ export async function setTaskRequestDocuments(
 export async function getDocumentsForTaskRequest(
   taskRequestId: string
 ): Promise<DocumentForTaskRequest[]> {
+  logger.info(`Repository: Listing documents for task request`);
   const links = await db
     .select({ documentMasterId: taskRequestDocuments.documentMasterId })
     .from(taskRequestDocuments)
@@ -214,6 +222,7 @@ function taskRequestContactToClientDto(tr: TaskRequestRow): CreateClientDto {
 
 /** Accept task request: create client from contact, link to client, set status ACCEPTED. */
 export async function acceptTaskRequest(taskRequestId: string): Promise<TaskRequestRow> {
+  logger.info(`Repository: Accepting task request`);
   const tr = await getTaskRequestById(taskRequestId);
   if (!tr) throw new NotFoundError("Task request not found");
   if (tr.status !== "PENDING") {
@@ -239,6 +248,7 @@ export async function acceptTaskRequest(taskRequestId: string): Promise<TaskRequ
 
 /** Reject task request: set status to REJECTED (only when PENDING). */
 export async function rejectTaskRequest(taskRequestId: string): Promise<TaskRequestRow> {
+  logger.info(`Repository: Rejecting task request`);
   const tr = await getTaskRequestById(taskRequestId);
   if (!tr) throw new NotFoundError("Task request not found");
   if (tr.status !== "PENDING") {

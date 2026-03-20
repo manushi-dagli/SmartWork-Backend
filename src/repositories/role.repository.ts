@@ -4,6 +4,7 @@ import type { Role, CreateRoleDto, UpdateRoleDto } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
 import { roles } from "../db/schema.js";
 import { db } from "../config/database.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: typeof roles.$inferSelect): Role {
   return {
@@ -17,6 +18,7 @@ function mapRow(row: typeof roles.$inferSelect): Role {
 }
 
 export const findRoleById = async (id: string): Promise<Role | null> => {
+  logger.info(`Repository: Fetching role by id`);
   const rows = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -24,6 +26,7 @@ export const findRoleById = async (id: string): Promise<Role | null> => {
 };
 
 export const findRoleByValue = async (value: RoleValue): Promise<Role | null> => {
+  logger.info(`Repository: Fetching role by value`);
   const rows = await db.select().from(roles).where(eq(roles.value, value)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -31,6 +34,7 @@ export const findRoleByValue = async (value: RoleValue): Promise<Role | null> =>
 };
 
 export const findManyRoles = async (): Promise<Role[]> => {
+  logger.info(`Repository: Listing roles`);
   const rows = await db
     .select()
     .from(roles)
@@ -40,6 +44,7 @@ export const findManyRoles = async (): Promise<Role[]> => {
 };
 
 export const createRole = async (dto: CreateRoleDto): Promise<Role> => {
+  logger.info(`Repository: Creating role`);
   const [row] = await db
     .insert(roles)
     .values({
@@ -53,6 +58,7 @@ export const createRole = async (dto: CreateRoleDto): Promise<Role> => {
 };
 
 export const updateRole = async (id: string, dto: UpdateRoleDto): Promise<Role> => {
+  logger.info(`Repository: Updating role`);
   const existing = await findRoleById(id);
   if (!existing) throw new NotFoundError("Role not found");
 
@@ -71,6 +77,7 @@ export const updateRole = async (id: string, dto: UpdateRoleDto): Promise<Role> 
 };
 
 export const deleteRole = async (id: string): Promise<void> => {
+  logger.info(`Repository: Deleting role`);
   const result = await db.delete(roles).where(eq(roles.id, id)).returning({ id: roles.id });
   if (result.length === 0) throw new NotFoundError("Role not found");
 };

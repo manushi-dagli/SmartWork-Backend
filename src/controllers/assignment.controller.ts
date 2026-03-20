@@ -9,6 +9,7 @@ import {
   updateAssignmentSchema,
 } from "../validations/schemas.js";
 
+import { logger } from "../lib/logger.js";
 function assignmentId(req: EmployeeAuthRequest): string {
   const id = req.params.id ?? req.params[0];
   return typeof id === "string" ? id : "";
@@ -18,7 +19,7 @@ export async function listAssignments(
   req: EmployeeAuthRequest,
   res: Response
 ): Promise<void> {
-  console.log("[API] GET /api/assignments");
+  logger.info("Controller: GET /api/assignments");
   const clientId =
     typeof req.query.clientId === "string" ? req.query.clientId : undefined;
   const status =
@@ -37,7 +38,7 @@ export async function getAssignment(
   res: Response
 ): Promise<void> {
   const id = assignmentId(req);
-  console.log("[API] GET /api/assignments/:id", id);
+  logger.info(`Controller: GET /api/assignments/:id ${id}`);
   const withDetails = req.query.details === "true";
   if (withDetails) {
     const result = await assignmentRepo.getAssignmentWithDetails(id);
@@ -60,7 +61,7 @@ export async function createAssignment(
   req: EmployeeAuthRequest,
   res: Response
 ): Promise<void> {
-  console.log("[API] POST /api/assignments");
+  logger.info("Controller: POST /api/assignments");
   try {
     const body = validateBody(req.body, createAssignmentSchema);
     const assignment = await assignmentRepo.createAssignment(body);
@@ -75,7 +76,7 @@ export async function updateAssignment(
   res: Response
 ): Promise<void> {
   const id = assignmentId(req);
-  console.log("[API] PATCH /api/assignments/:id", id);
+  logger.info(`Controller: PATCH /api/assignments/:id ${id}`);
   try {
     const body = validateBody(req.body, updateAssignmentSchema);
     const assignment = await assignmentRepo.updateAssignment(id, body);
@@ -90,7 +91,7 @@ export async function deleteAssignment(
   res: Response
 ): Promise<void> {
   const id = assignmentId(req);
-  console.log("[API] DELETE /api/assignments/:id", id);
+  logger.info(`Controller: DELETE /api/assignments/:id ${id}`);
   try {
     await assignmentRepo.deleteAssignment(id);
     sendSuccess(res, { deleted: true });

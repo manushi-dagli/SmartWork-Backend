@@ -4,6 +4,7 @@ import { queries } from "../db/schema.js";
 import type { QueryRow } from "../db/schema.js";
 import type { Query, CreateQueryDto, UpdateQueryDto } from "../common/types.js";
 import { NotFoundError } from "../common/errors.js";
+import { logger } from "../lib/logger.js";
 
 function mapRow(row: QueryRow): Query {
   return {
@@ -21,6 +22,7 @@ function mapRow(row: QueryRow): Query {
 export async function listByAssignment(
   assignmentId: string
 ): Promise<Query[]> {
+  logger.info(`Repository: Listing queries by assignment id`);
   const rows = await db
     .select()
     .from(queries)
@@ -30,6 +32,7 @@ export async function listByAssignment(
 }
 
 export async function getById(id: string): Promise<Query | null> {
+  logger.info(`Repository: Fetching query by id`);
   const rows = await db
     .select()
     .from(queries)
@@ -41,6 +44,7 @@ export async function getById(id: string): Promise<Query | null> {
 }
 
 export async function create(dto: CreateQueryDto): Promise<Query> {
+  logger.info(`Repository: Creating query`);
   const [row] = await db
     .insert(queries)
     .values({
@@ -55,6 +59,7 @@ export async function create(dto: CreateQueryDto): Promise<Query> {
 }
 
 export async function update(id: string, dto: UpdateQueryDto): Promise<Query> {
+  logger.info(`Repository: Updating query`);
   const existing = await getById(id);
   if (!existing) throw new NotFoundError("Query not found");
   const [row] = await db
@@ -72,6 +77,7 @@ export async function update(id: string, dto: UpdateQueryDto): Promise<Query> {
 }
 
 export async function deleteById(id: string): Promise<void> {
+  logger.info(`Repository: Deleting query`);
   const deleted = await db
     .delete(queries)
     .where(eq(queries.id, id))

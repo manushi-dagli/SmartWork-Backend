@@ -9,11 +9,12 @@ import * as superAdminRepo from "../repositories/superAdmin.repository.js";
 import { env } from "../config/env.js";
 import { sendSuccess } from "../common/response.js";
 
+import { logger } from "../lib/logger.js";
 const JWT_EXPIRES_IN = "7d";
 
 /** POST /auth/login — login with username/email and password (employees or super admins). */
 export const employeeLogin = async (req: Request, res: Response): Promise<void> => {
-  console.log("[API] POST /api/auth/login");
+  logger.info("Controller: POST /api/auth/login");
   const body = req.body as { usernameOrEmail?: string; password?: string };
   if (!body.usernameOrEmail || !body.password) {
     res.status(400).json({
@@ -106,14 +107,14 @@ export const employeeLogin = async (req: Request, res: Response): Promise<void> 
 
 /** POST /auth/employee-logout — clear employee cookie. */
 export const employeeLogout = async (_req: Request, res: Response): Promise<void> => {
-  console.log("[API] POST /api/auth/logout");
+  logger.info("Controller: POST /api/auth/logout");
   res.clearCookie("employee_token");
   sendSuccess(res, { loggedOut: true });
 };
 
 /** GET /session — current employee + permissions (requires employee auth). */
 export const getSession = async (req: EmployeeAuthRequest, res: Response): Promise<void> => {
-  console.log("[API] GET /api/auth/session");
+  logger.info("Controller: GET /api/auth/session");
   sendSuccess(res, {
     ...req.employee,
     roleId: req.authMeta?.roleId ?? null,

@@ -9,6 +9,7 @@ import {
   updateAssignmentDocumentSchema,
 } from "../validations/schemas.js";
 
+import { logger } from "../lib/logger.js";
 function idParam(req: EmployeeAuthRequest): string {
   return (req.params.id ?? req.params[0]) as string;
 }
@@ -18,7 +19,7 @@ export async function listByAssignment(
   res: Response
 ): Promise<void> {
   const assignmentId = (req.params.assignmentId ?? req.params[0]) as string;
-  console.log("[API] GET /api/assignments/:assignmentId/documents", assignmentId);
+  logger.info(`Controller: GET /api/assignments/:assignmentId/documents ${assignmentId}`);
   const list = await repo.listByAssignment(assignmentId);
   sendSuccess(res, list);
 }

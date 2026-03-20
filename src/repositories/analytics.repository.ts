@@ -8,6 +8,7 @@ import {
   invoices,
   payments,
 } from "../db/schema.js";
+import { logger } from "../lib/logger.js";
 
 function parseAmount(t: string | null | undefined): number {
   if (t == null || t === "") return 0;
@@ -54,6 +55,7 @@ export interface AnalyticsSummary {
 }
 
 export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
+  logger.info(`Repository: Fetching analytics summary`);
   const [clientRows, assignmentRows, invoiceRows, paymentRows, firmRows] =
     await Promise.all([
       db.select().from(clients),
